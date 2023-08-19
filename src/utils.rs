@@ -1,4 +1,6 @@
-#[derive(Clone, Debug)]
+use std::io::{self, BufRead};
+
+#[derive(Clone)]
 pub enum Ticket {
     Taxi,
     Bus,
@@ -6,7 +8,7 @@ pub enum Ticket {
     Black,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Station {
     pub num: u8,
     pub taxi: Vec<u8>,
@@ -16,7 +18,7 @@ pub struct Station {
 }
 
 impl Station {
-    pub fn find_possible_from(&self, stations: &Vec<Station>, tickets: Vec<Ticket>) -> Vec<u8> {
+    pub fn find_possible_from(&self, stations: &Vec<Station>, tickets: &Vec<Ticket>) -> Vec<u8> {
         let cur_ticket = match tickets.get(0) {
             Some(val) => val,
             None => return vec![],
@@ -39,11 +41,10 @@ impl Station {
             neighbors
                 .iter()
                 .flat_map(|num| {
-                    println!("{:?}", stations.get(*num as usize - 1).unwrap());
                     stations
                         .get(*num as usize - 1)
                         .unwrap()
-                        .find_possible_from(&stations, tickets.clone().split_off(1))
+                        .find_possible_from(&stations, &tickets.clone().split_off(1))
                 })
                 .collect()
         };
@@ -60,4 +61,21 @@ impl Station {
             }
         }
     }
+}
+
+pub fn get_tickets() -> Vec<Ticket> {
+    println!("Input what Tickets Mr.X used by their starting letter.");
+    let mut tickets = String::new();
+    io::stdin().lock().read_line(&mut tickets).unwrap();
+    tickets
+        .chars()
+        .into_iter()
+        .flat_map(|char| match char {
+            't' | 'T' => vec![Ticket::Taxi],
+            'b' | 'B' => vec![Ticket::Bus],
+            's' | 'S' => vec![Ticket::Subway],
+            'x' | 'X' => vec![Ticket::Black],
+            _ => vec![],
+        })
+        .collect()
 }
